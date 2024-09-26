@@ -22,6 +22,7 @@ const Sidebar = () => {
   const [editInput, setEditInput] = useState("");
   const [selectedProfileName, setSelectedProfileName] = useState("");
   const deleteConfirmRef = useRef(null);
+  const [editProfileId, setEditProfileId] = useState(null); // Tracks which profile is being edited
 
   // getting array from redux slice
 
@@ -149,6 +150,8 @@ const Sidebar = () => {
 
   const handleDoneEdit = (id, updatedName) => {
     setIsEditing(false);
+    setEditProfileId(null); // Reset after editing
+
     if (updatedName === "") {
       return;
     }
@@ -162,6 +165,7 @@ const Sidebar = () => {
 
   const handleEditClick = (id) => {
     setIsEditing(true);
+    setEditProfileId(id);
     console.log(id, "edit id");
   };
 
@@ -204,27 +208,35 @@ const Sidebar = () => {
                     profile.isActive ? "active" : ""
                   }`}
                   key={profile.id}
-                  onClick={() => handleActive(profile.id)}
+                  onClick={() => {
+                    handleActive(profile.id);
+                    setIsEditing(false);
+                  }}
                 >
-                  {profile.name}
+                  {isEditing && editProfileId === profile.id ? (
+                    <input
+                      id="profileRename"
+                      className={`profile-item ${isEditing ? "show" : ""} `}
+                      placeholder="Enter Profile Name"
+                      value={selectedProfileName}
+                      maxLength="25"
+                      onChange={handleProfileNameChange}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          handleDoneEdit(selectedProfile.id, editInput);
+                        }
+                      }}
+                      onBlur={() =>
+                        handleDoneEdit(selectedProfile.id, editInput)
+                      }
+                      autoFocus
+                    />
+                  ) : (
+                    profile.name
+                  )}
                 </div>
               </>
             ))}
-
-            <input
-              id="profileRename"
-              className={`profile-item ${isEditing ? "show" : ""}`}
-              placeholder="Enter Profile Name"
-              value={selectedProfileName}
-              maxLength="25"
-              onChange={handleProfileNameChange}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  handleDoneEdit(selectedProfile.id, editInput);
-                }
-              }}
-              onBlur={() => handleDoneEdit(selectedProfile.id, editInput)}
-            />
           </div>
 
           <div className="toolbar flex">

@@ -113,13 +113,14 @@
   cursor: default;
   opacity: 0.3;
 }
+
 .profile-item {
   max-height: 30px;
   height: 30px;
   border: none;
   color: #ccc;
   text-transform: capitalize;
-  padding: 5px 10px 5px 36px;
+  padding: 5px 10px 5px 36px; /* Align text with icon */
   font-size: 14px;
   line-height: 20px;
   margin: 0;
@@ -129,6 +130,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow-x: hidden;
+  overflow: hidden; /* Prevent scrolling */
 
   will-change: color, background-color;
   transition: color 0.2s, background-color 0.2s;
@@ -136,15 +138,17 @@
 input.profile-item {
   z-index: 2;
   font-family: "Roboto", sans-serif;
-  position: absolute;
-  display: none;
-  width: calc(100% - 30px);
-  margin-left: 30px;
+  position: relative; /* Change to relative to avoid layout shift */
+  display: inline-block; /* Make it inline */
+  width: calc(100%); /* Ensure it fits within the width of the profile item */
   border: 1px solid #44d62c;
+  height: 30px; /* Same height as the profile-item */
+
   box-sizing: border-box;
   background-color: #111 !important;
-  padding: 3px 10px 5px 5px;
-  line-height: 20px;
+  padding: 0px 0px; /* Reduce padding to match the inline style */
+  /* line-height: 20px; */
+  margin: 0; /* Ensure no extra margins */
 }
 input.profile-item.show {
   display: block;
@@ -268,4 +272,9 @@ input.profile-item:active {
   max-height: 189px;
   position: absolute;
   width: 100%;
+}
+
+.not-scrollable {
+  overflow-y: hidden;
+  overflow-x: hidden;
 }
