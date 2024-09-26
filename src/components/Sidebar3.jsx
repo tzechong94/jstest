@@ -1,40 +1,23 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { addProfile, deleteProfile } from "../reducers/profileReducer";
+import { addProfile, updateProfileArray } from "../reducers/profileReducer";
 import MainScreen from "./MainScreen";
 
 const Sidebar = () => {
-  const profileArray = useSelector((state) => state.profileArray);
+  let profileArray = useSelector((state) => state.profileArray);
   const dispatch = useDispatch();
+
   const [selectedProfileName, setSelectedProfileName] = useState("");
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleteProfileId, setDeleteProfileId] = useState(null);
-
-  const [activeProfile, setActiveProfile] = useState(
-    document.getElementById("profile1")
-  );
-
-  useEffect(() => {
-    const newProfile = document.getElementById(
-      profileArray[profileArray.length - 1].id
-    );
-    setActiveProfile(newProfile);
-    setSelectedProfileName(newProfile.innerText);
-    newProfile.scrollIntoView({ behavior: "smooth" });
-    console.log(profileArray, profileArray);
-  }, [profileArray]);
-
-  useEffect(() => {
-    setActiveProfile(document.getElementById("profile1"));
-  }, []);
+  const [activeProfileId, setActiveProfileId] = useState("profile1");
 
   useEffect(() => {
     setSelectedProfileName(document.getElementById("profile1").innerText);
+    checkUpDown();
   }, []);
 
-  // getting array from redux slice
-
   function checkUpDown() {
+    const activeProfile = document.getElementById(activeProfileId);
+    console.log(activeProfile, "active profile");
     if (!activeProfile.nextElementSibling) {
       document.getElementById("profileDown").classList.add("disabled");
     } else if (!activeProfile.previousElementSibling) {
@@ -44,39 +27,45 @@ const Sidebar = () => {
       document.getElementById("profileDown").classList.remove("disabled");
     }
   }
-  const handleDown = function () {
-    const profileList = document.getElementById("profileList");
 
-    const next = activeProfile.nextElementSibling;
-    if (next == null) {
-      return false;
+  const moveUp = async (id) => {
+    let index = profileArray.findIndex((profile) => profile.id === id);
+    if (index > 0) {
+      let newArray = [...profileArray];
+      let el = newArray[index];
+      newArray[index] = newArray[index - 1];
+      newArray[index - 1] = el;
+      console.log(newArray);
+      await dispatch(updateProfileArray(newArray));
     }
-    profileList.insertBefore(activeProfile.nextElementSibling, activeProfile);
+
     checkUpDown();
   };
 
-  const handleUp = function () {
-    const profileList = document.getElementById("profileList");
+  const moveDown = async (id) => {
+    let index = profileArray.findIndex((profile) => profile.id == id);
+    if (index !== -1 && index < profileArray.length - 1) {
+      let newArray = [...profileArray];
+      let el = newArray[index];
+      newArray[index] = newArray[index + 1];
+      newArray[index + 1] = el;
+      console.log(newArray, "profile array");
 
-    const prev = activeProfile.previousElementSibling;
-    if (prev == null) {
-      return false;
+      await dispatch(updateProfileArray(newArray));
     }
-    profileList.insertBefore(activeProfile, prev);
     checkUpDown();
   };
 
   const handleActive = (e) => {
-    // console.log("handleActive called");
-
     const profileItems = document.querySelectorAll(".profile-item");
-    // console.log("profileItems:", profileItems);
 
     profileItems.forEach((item) => {
       item.classList.remove("active");
     });
     const profileItem = e.target;
-    setActiveProfile(profileItem);
+    setActiveProfileId(profileItem.id);
+    // console.log(activeProfile, " active profile");
+    console.log(activeProfileId, "active profile id");
     setSelectedProfileName(profileItem.innerText);
     const nextSibling = profileItem.nextElementSibling;
     const prevSibling = profileItem.previousElementSibling;
@@ -91,11 +80,12 @@ const Sidebar = () => {
       document.getElementById("profileDown").classList.remove("disabled");
       document.getElementById("profileUp").classList.add("disabled");
     } else {
+      console.log("both", nextSibling, prevSibling);
       document.getElementById("profileUp").classList.remove("disabled");
       document.getElementById("profileDown").classList.remove("disabled");
     }
-
     profileItem.classList.add("active");
+
     if (profileItem.classList.contains("custom")) {
       document.getElementById("profileEdit").classList.add("show");
       document.getElementById("deleteIcon").classList.add("show");
@@ -106,32 +96,11 @@ const Sidebar = () => {
     // checkUpDown();
   };
 
-  const handleAdd = async () => {
+  const handleAdd = () => {
     const id = Math.floor(Math.random() * 1000);
     console.log("new id, ", id);
-    await dispatch(addProfile(id));
+    dispatch(addProfile(id));
     handleActive({ target: document.getElementById(id) });
-  };
-
-  const handleDelete = (id) => {
-    console.log(id, " delete id");
-    setDeleteProfileId(id);
-    setShowDeleteConfirm(true);
-    console.log(showDeleteConfirm, "show delete confirm");
-  };
-
-  const handleConfirmDelete = () => {
-    dispatch(deleteProfile(deleteProfileId));
-    setShowDeleteConfirm(false);
-  };
-
-  const handleClickOutside = (event) => {
-    if (
-      event.target.id !== "profileDelCfm" &&
-      !event.target.closest("#profileDelCfm")
-    ) {
-      setShowDeleteConfirm(false);
-    }
   };
 
   return (
@@ -163,41 +132,31 @@ const Sidebar = () => {
             <div
               className="icon delete"
               id="deleteIcon"
-              onClick={() => handleDelete(activeProfile.id)}
+              //   onClick={() => handlePopup(activeProfileId)}
             />
 
             <div
               className="icon down"
               id="profileDown"
-              onClick={handleDown}
+              onClick={() => moveDown(activeProfileId)}
             ></div>
             <div
               className="icon up disabled"
               id="profileUp"
-              onClick={handleUp}
+              onClick={() => moveUp(activeProfileId)}
             ></div>
           </div>
-          <div
-            id="profileDelCfm"
-            className={`profile-del alert flex ${
-              showDeleteConfirm ? "show" : ""
-            } `}
-          >
+          {/* {showDeleteConfirmation && ( */}
+          {/* <div id="profileDelCfm" className="profile-del alert flex">
             <div className="title">delete eq</div>
             <div className="body-text t-center" id="delName">
-              {
-                profileArray.find((profile) => profile.id === deleteProfileId)
-                  ?.name
-              }
+              test
             </div>
-            <div
-              className="thx-btn"
-              id="cfmDelete"
-              onClick={handleConfirmDelete}
-            >
+            <div className="thx-btn" id="cfmDelete">
               delete
             </div>
           </div>
+          )} */}
         </div>
       </div>
       <MainScreen name={selectedProfileName} />

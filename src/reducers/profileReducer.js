@@ -28,12 +28,12 @@ export const profileSlice = createSlice({
   name: "profile",
   initialState,
   reducers: {
-    addProfile: (state) => {
+    addProfile: (state, action) => {
       console.log("profile added");
       state.profileArray.push({
         name: "New Profile",
         className: "custom",
-        id: state.profileArray.length + 1,
+        id: action.payload,
       });
     },
     changeProfile: (state, action) => {
@@ -54,9 +54,11 @@ export const profileSlice = createSlice({
       });
     },
     deleteProfile: (state, action) => {
+      console.log(action.payload, "delete this id");
       state.profileArray = state.profileArray.filter(
-        (profile) => profile.id !== action.payload
+        (profile) => profile.id.toString() !== action.payload.toString()
       );
+      console.log(state.profileArray, "updated array");
     },
   },
 });

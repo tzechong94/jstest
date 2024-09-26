@@ -1,9 +1,15 @@
-import React from 'react'
+import React from "react";
 
-const MainScreen = () => {
+const MainScreen = ({ name }) => {
   return (
-    <div>MainScreen</div>
-  )
-}
+    <div className="thx-window">
+      <div className="sub-title flex">
+        <h1 id="eqTitle" className="eq-title">
+          {name}
+        </h1>
+      </div>
+    </div>
+  );
+};
 
-export default MainScreen
+export default MainScreen;
