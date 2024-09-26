@@ -26,6 +26,7 @@ const Sidebar = () => {
   const deleteConfirmRef = useRef(null);
   const [editProfileId, setEditProfileId] = useState(null); // Tracks which profile is being edited
   const autoSaveTimeout = useRef(null); // Timeout for the debounce
+  const profileListRef = useRef(null); // New reference for the profile list
 
   // getting array from redux slice
 
@@ -40,8 +41,8 @@ const Sidebar = () => {
     } else {
       setIsFirst(false);
     }
-    console.log(isFirst, "isFirst");
-    console.log(isLast, "isLast");
+    // console.log(isFirst, "isFirst");
+    // console.log(isLast, "isLast");
   }, [
     dispatch,
     isFirst,
@@ -86,7 +87,7 @@ const Sidebar = () => {
   }, [profileArray, triggerAutoSave]);
 
   const handleDown = (id) => {
-    console.log("clicking down for id: ", id);
+    // console.log("clicking down for id: ", id);
     let tempArray = [...profileArray];
 
     const selectedItemIndex = tempArray.findIndex(
@@ -99,15 +100,15 @@ const Sidebar = () => {
     ) {
       tempArray[selectedItemIndex] = tempArray[selectedItemIndex + 1];
       tempArray[selectedItemIndex + 1] = tempItem;
-      console.log(tempArray, "updated array");
+      // console.log(tempArray, "updated array");
       setSelectedProfileIndex(selectedItemIndex + 1);
       dispatch(setProfileArray(tempArray));
     }
   };
 
   const handleUp = (id) => {
-    console.log("clicking up for id: ", id);
-    console.log(id, "id");
+    // console.log("clicking up for id: ", id);
+    // console.log(id, "id");
     let tempArray = [...profileArray];
 
     const selectedItemIndex = tempArray.findIndex(
@@ -117,19 +118,19 @@ const Sidebar = () => {
     if (selectedItemIndex !== -1 && selectedItemIndex !== 0) {
       tempArray[selectedItemIndex] = tempArray[selectedItemIndex - 1];
       tempArray[selectedItemIndex - 1] = tempItem;
-      console.log(tempArray, "updated array");
+      // console.log(tempArray, "updated array");
       setSelectedProfileIndex(selectedItemIndex - 1);
       dispatch(setProfileArray(tempArray));
     }
   };
 
   const handleActive = (id) => {
-    console.log("id that is clicked, ", id);
+    // console.log("id that is clicked, ", id);
     const tempArray = [...profileArray];
     const testItem = tempArray.find(
       (profile) => profile.id.toString() === id.toString()
     );
-    console.log(testItem, "test item");
+    // console.log(testItem, "test item");
     setSelectedProfile(
       tempArray.find((profile) => profile.id.toString() === id.toString())
     );
@@ -137,9 +138,9 @@ const Sidebar = () => {
       tempArray.findIndex((profile) => profile.id.toString() === id.toString())
     );
     dispatch(setActiveProfile(id));
-    console.log("this is run");
+    // console.log("this is run");
     setSelectedProfileName(testItem.name);
-    console.log(selectedProfileName, "selected profile name");
+    // console.log(selectedProfileName, "selected profile name");
   };
 
   const handleAdd = () => {
@@ -153,25 +154,30 @@ const Sidebar = () => {
       isEditable: true,
     };
     const tempArray = [...profileArray, newProfile];
-    console.log("new id, ", id);
+    // console.log("new id, ", id);
     dispatch(setProfileArray(tempArray));
     setSelectedProfile(newProfile);
     setSelectedProfileIndex(tempArray.length - 1);
+    setTimeout(() => {
+      if (profileListRef.current) {
+        profileListRef.current.scrollTop = profileListRef.current.scrollHeight;
+      }
+    }, 0);
   };
 
   const handleDelete = (id) => {
-    console.log(id, " delete id");
+    // console.log(id, " delete id");
     setDeleteProfileId(id);
     setDeleteProfileIndex(
       profileArray.findIndex((profile) => profile.id === id)
     );
     setShowDeleteConfirm(!showDeleteConfirm);
-    console.log(showDeleteConfirm, "show delete confirm");
+    // console.log(showDeleteConfirm, "show delete confirm");
   };
 
   const handleConfirmDelete = () => {
-    console.log(deleteProfileIndex, "delete profile index");
-    console.log(deleteProfileId, "delete profile id");
+    // console.log(deleteProfileIndex, "delete profile index");
+    // console.log(deleteProfileId, "delete profile id");
     const previousId = profileArray[deleteProfileIndex - 1]?.id;
 
     dispatch(deleteProfile(deleteProfileId));
@@ -204,7 +210,7 @@ const Sidebar = () => {
   const handleEditClick = (id) => {
     setIsEditing(true);
     setEditProfileId(id);
-    console.log(id, "edit id");
+    // console.log(id, "edit id");
   };
 
   const handleProfileNameChange = (e) => {
@@ -237,7 +243,7 @@ const Sidebar = () => {
       <div className="thx-drawer flex">
         <div className="main-title">Profile List</div>
         <div id="profileWrapper" className="drawer-select flex">
-          <div id="profileList" className="scrollable">
+          <div id="profileList" className="scrollable" ref={profileListRef}>
             {profileArray.map((profile) => (
               <div key={profile.id}>
                 <div
