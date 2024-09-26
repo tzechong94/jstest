@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   addProfile,
@@ -17,10 +17,12 @@ const Sidebar = () => {
   const [selectedProfileIndex, setSelectedProfileIndex] = useState(0);
   const [isLast, setIsLast] = useState(false);
   const [isFirst, setIsFirst] = useState(true);
+  const [deleteProfileId, setDeleteProfileId] = useState(null);
+  const [deleteProfileIndex, setDeleteProfileIndex] = useState(null);
+
   // getting array from redux slice
 
   useEffect(() => {
-    dispatch(setActiveProfile(selectedProfile.id));
     if (selectedProfileIndex === profileArray.length - 1) {
       setIsLast(true);
     } else {
@@ -42,7 +44,9 @@ const Sidebar = () => {
     selectedProfileIndex,
   ]);
 
-  function checkUpDown() {}
+  useEffect(() => {
+    dispatch(setActiveProfile(selectedProfile.id));
+  }, [dispatch, selectedProfile]);
 
   const handleDown = (id) => {
     console.log("clicking down for id: ", id);
@@ -65,8 +69,6 @@ const Sidebar = () => {
   };
 
   const handleUp = (id) => {
-    // dispatch(setActiveProfile(id));
-
     console.log("clicking up for id: ", id);
     console.log(id, "id");
     let tempArray = [...profileArray];
@@ -82,8 +84,6 @@ const Sidebar = () => {
       setSelectedProfileIndex(selectedItemIndex - 1);
       dispatch(setProfileArray(tempArray));
     }
-
-    // dispatch(setProfileArray(temp));
   };
 
   const handleActive = (id) => {
@@ -92,21 +92,55 @@ const Sidebar = () => {
       profileArray.findIndex((profile) => profile.id === id)
     );
     dispatch(setActiveProfile(id));
+    console.log("this is run");
   };
 
-  const handleAdd = async () => {};
+  useEffect(() => {}, [profileArray]);
 
-  const handleDelete = (id) => {};
+  const handleAdd = () => {
+    const id = Math.floor(Math.random() * 1000);
+    // local copy first
+    const newProfile = {
+      name: "New profile",
+      id,
+      className: "custom",
+      isActive: true,
+      isEditable: true,
+    };
+    const tempArray = [...profileArray, newProfile];
+    console.log("new id, ", id);
+    dispatch(setProfileArray(tempArray));
+    setSelectedProfile(newProfile);
+    setSelectedProfileIndex(tempArray.length - 1);
+  };
 
-  const handleConfirmDelete = () => {};
+  const handleDelete = (id) => {
+    console.log(id, " delete id");
+    setDeleteProfileId(id);
+    setDeleteProfileIndex(
+      profileArray.findIndex((profile) => profile.id === id)
+    );
+    setShowDeleteConfirm(true);
+    console.log(showDeleteConfirm, "show delete confirm");
+  };
 
-  const handleEditClick = (profileId) => {};
+  const handleConfirmDelete = () => {
+    console.log(deleteProfileIndex, "delete profile index");
+    console.log(deleteProfileId, "delete profile id");
+    const previousId = profileArray[deleteProfileIndex - 1].id;
 
-  const isSelectedLast = () => {};
+    dispatch(deleteProfile(deleteProfileId));
+    setShowDeleteConfirm(false);
+    handleActive(previousId);
+  };
 
-  const handleProfileNameChange = (e) => {};
+  // const handleEditClick = (profileId) => {};
 
-  const handleSaveChanges = (profileId) => {};
+  // const isSelectedLast = () => {};
+
+  // const handleProfileNameChange = (e) => {};
+
+  // const handleSaveChanges = (profileId) => {};
 
   return (
     <>
@@ -131,14 +165,18 @@ const Sidebar = () => {
           <div className="toolbar flex">
             <div className="icon add" id="profileAdd" onClick={handleAdd}></div>
             <div
-              className="icon edit"
+              className={`icon edit ${
+                selectedProfile.isEditable ? "show" : ""
+              } `}
               id="profileEdit"
-              onClick={() => handleEditClick(activeProfile.id)}
+              // onClick={() => handleEditClick(selectedProfile.id)}
             ></div>
             <div
-              className="icon delete"
+              className={`icon delete ${
+                selectedProfile.isEditable ? "show" : ""
+              } `}
               id="deleteIcon"
-              onClick={() => handleDelete(activeProfile.id)}
+              onClick={() => handleDelete(selectedProfile.id)}
             />
 
             <div
@@ -160,7 +198,7 @@ const Sidebar = () => {
           >
             <div className="title">delete eq</div>
             <div className="body-text t-center" id="delName">
-              name
+              {selectedProfile.name}
             </div>
             <div
               className="thx-btn"

@@ -6,24 +6,30 @@ const initialState = {
       name: "Default",
       className: "default",
       isActive: true,
+      isEditable: false,
       id: "profile1",
     },
     {
       name: "Game",
       className: "no-edit game",
       id: "profile2",
+      isEditable: false,
       isActive: false,
     },
     {
       name: "Movie",
       className: "no-edit movie",
       id: "profile3",
+      isEditable: false,
+
       isActive: false,
     },
     {
       name: "Music",
       className: "no-edit music",
       id: "profile4",
+      isEditable: false,
+
       isActive: false,
     },
     // {
@@ -49,10 +55,13 @@ export const profileSlice = createSlice({
     },
     addProfile: (state, action) => {
       console.log("profile added");
+      state.profileArray.forEach((profile) => (profile.isActive = false));
       state.profileArray.push({
         name: "New Profile",
         className: "custom",
         id: action.payload,
+        isActive: true,
+        isEditable: true,
       });
     },
     changeProfile: (state, action) => {
@@ -67,7 +76,7 @@ export const profileSlice = createSlice({
     setActiveProfile(state, action) {
       state.profileArray = state.profileArray.map((profile) => ({
         ...profile,
-        isActive: profile.id === action.payload,
+        isActive: profile.id.toString() === action.payload.toString(),
       }));
     },
 
