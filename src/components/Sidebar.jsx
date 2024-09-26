@@ -19,6 +19,9 @@ const Sidebar = () => {
   const [isFirst, setIsFirst] = useState(true);
   const [deleteProfileId, setDeleteProfileId] = useState(null);
   const [deleteProfileIndex, setDeleteProfileIndex] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editInput, setEditInput] = useState("");
+  const [selectedProfileName, setSelectedProfileName] = useState("");
 
   // getting array from redux slice
 
@@ -87,15 +90,23 @@ const Sidebar = () => {
   };
 
   const handleActive = (id) => {
-    setSelectedProfile(profileArray.find((profile) => profile.id === id));
+    console.log("id that is clicked, ", id);
+    const tempArray = [...profileArray];
+    const testItem = tempArray.find(
+      (profile) => profile.id.toString() === id.toString()
+    );
+    console.log(testItem, "test item");
+    setSelectedProfile(
+      tempArray.find((profile) => profile.id.toString() === id.toString())
+    );
     setSelectedProfileIndex(
-      profileArray.findIndex((profile) => profile.id === id)
+      tempArray.findIndex((profile) => profile.id.toString() === id.toString())
     );
     dispatch(setActiveProfile(id));
     console.log("this is run");
+    setSelectedProfileName(testItem.name);
+    console.log(selectedProfileName, "selected profile name");
   };
-
-  useEffect(() => {}, [profileArray]);
 
   const handleAdd = () => {
     const id = Math.floor(Math.random() * 1000);
@@ -134,6 +145,25 @@ const Sidebar = () => {
     handleActive(previousId);
   };
 
+  const handleDoneEdit = (id, updatedName) => {
+    setIsEditing(false);
+    const updatedProfile = {
+      ...profileArray.find((profile) => profile.id === id),
+      name: updatedName,
+    };
+    dispatch(editProfile(updatedProfile));
+    setEditInput("");
+  };
+
+  const handleEditClick = (id) => {
+    setIsEditing(true);
+    console.log(id, "edit id");
+  };
+
+  const handleProfileNameChange = (e) => {
+    setSelectedProfileName(e.target.value);
+    setEditInput(e.target.value);
+  };
   // const handleEditClick = (profileId) => {};
 
   // const isSelectedLast = () => {};
@@ -149,17 +179,29 @@ const Sidebar = () => {
         <div id="profileWrapper" className="drawer-select flex">
           <div id="profileList" className="scrollable">
             {profileArray.map((profile) => (
-              <div
-                id={profile.id}
-                className={`profile-item ${profile.className} ${
-                  profile.isActive ? "active" : ""
-                }`}
-                key={profile.id}
-                onClick={() => handleActive(profile.id)}
-              >
-                {profile.name}
-              </div>
+              <>
+                <div
+                  id={profile.id}
+                  className={`profile-item ${profile.className} ${
+                    profile.isActive ? "active" : ""
+                  }`}
+                  key={profile.id}
+                  onClick={() => handleActive(profile.id)}
+                >
+                  {profile.name}
+                </div>
+              </>
             ))}
+
+            <input
+              id="profileRename"
+              className={`profile-item ${isEditing ? "show" : ""}`}
+              placeholder="Enter Profile Name"
+              value={selectedProfileName}
+              maxLength="25"
+              onChange={handleProfileNameChange}
+              onBlur={() => handleDoneEdit(selectedProfile.id, editInput)}
+            />
           </div>
 
           <div className="toolbar flex">
@@ -169,7 +211,7 @@ const Sidebar = () => {
                 selectedProfile.isEditable ? "show" : ""
               } `}
               id="profileEdit"
-              // onClick={() => handleEditClick(selectedProfile.id)}
+              onClick={() => handleEditClick(selectedProfile.id)}
             ></div>
             <div
               className={`icon delete ${
