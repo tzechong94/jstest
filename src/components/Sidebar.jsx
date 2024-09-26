@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  addProfile,
   deleteProfile,
   editProfile,
   setActiveProfile,
@@ -22,6 +21,7 @@ const Sidebar = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editInput, setEditInput] = useState("");
   const [selectedProfileName, setSelectedProfileName] = useState("");
+  const deleteConfirmRef = useRef(null);
 
   // getting array from redux slice
 
@@ -131,25 +131,30 @@ const Sidebar = () => {
     setDeleteProfileIndex(
       profileArray.findIndex((profile) => profile.id === id)
     );
-    setShowDeleteConfirm(true);
+    setShowDeleteConfirm(!showDeleteConfirm);
     console.log(showDeleteConfirm, "show delete confirm");
   };
 
   const handleConfirmDelete = () => {
     console.log(deleteProfileIndex, "delete profile index");
     console.log(deleteProfileId, "delete profile id");
-    const previousId = profileArray[deleteProfileIndex - 1].id;
+    const previousId = profileArray[deleteProfileIndex - 1]?.id;
 
     dispatch(deleteProfile(deleteProfileId));
-    setShowDeleteConfirm(false);
-    handleActive(previousId);
+    if (previousId) {
+      handleActive(previousId);
+    }
+    setShowDeleteConfirm(!showDeleteConfirm);
   };
 
   const handleDoneEdit = (id, updatedName) => {
     setIsEditing(false);
+    if (updatedName === "") {
+      return;
+    }
     const updatedProfile = {
       ...profileArray.find((profile) => profile.id === id),
-      name: updatedName,
+      name: updatedName.trim(),
     };
     dispatch(editProfile(updatedProfile));
     setEditInput("");
@@ -164,13 +169,26 @@ const Sidebar = () => {
     setSelectedProfileName(e.target.value);
     setEditInput(e.target.value);
   };
-  // const handleEditClick = (profileId) => {};
 
-  // const isSelectedLast = () => {};
+  //
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        deleteConfirmRef.current &&
+        !deleteConfirmRef.current.contains(event.target)
+      ) {
+        setShowDeleteConfirm(false); // Close the delete confirmation
+      }
+    };
 
-  // const handleProfileNameChange = (e) => {};
+    // Attach the event listener to the document
+    document.addEventListener("mousedown", handleClickOutside);
 
-  // const handleSaveChanges = (profileId) => {};
+    // Cleanup the event listener on component unmount
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <>
@@ -200,6 +218,11 @@ const Sidebar = () => {
               value={selectedProfileName}
               maxLength="25"
               onChange={handleProfileNameChange}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  handleDoneEdit(selectedProfile.id, editInput);
+                }
+              }}
               onBlur={() => handleDoneEdit(selectedProfile.id, editInput)}
             />
           </div>
@@ -218,7 +241,9 @@ const Sidebar = () => {
                 selectedProfile.isEditable ? "show" : ""
               } `}
               id="deleteIcon"
-              onClick={() => handleDelete(selectedProfile.id)}
+              onClick={() => {
+                handleDelete(selectedProfile.id);
+              }}
             />
 
             <div
@@ -233,10 +258,13 @@ const Sidebar = () => {
             ></div>
           </div>
           <div
+            ref={deleteConfirmRef}
             id="profileDelCfm"
             className={`profile-del alert flex ${
               showDeleteConfirm ? "show" : ""
             } `}
+            // onBlur={handleBlur}
+            tabIndex="0"
           >
             <div className="title">delete eq</div>
             <div className="body-text t-center" id="delName">
