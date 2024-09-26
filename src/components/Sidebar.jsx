@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   deleteProfile,
@@ -9,6 +9,8 @@ import {
 import MainScreen from "./MainScreen";
 
 const Sidebar = () => {
+  const DUMMY_API_URL = "https://jsonplaceholder.typicode.com/posts";
+
   const profileArray = useSelector((state) => state.profileArray);
   const dispatch = useDispatch();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -23,6 +25,7 @@ const Sidebar = () => {
   const [selectedProfileName, setSelectedProfileName] = useState("");
   const deleteConfirmRef = useRef(null);
   const [editProfileId, setEditProfileId] = useState(null); // Tracks which profile is being edited
+  const autoSaveTimeout = useRef(null); // Timeout for the debounce
 
   // getting array from redux slice
 
@@ -51,6 +54,36 @@ const Sidebar = () => {
   useEffect(() => {
     dispatch(setActiveProfile(selectedProfile.id));
   }, [dispatch, selectedProfile]);
+
+  const autoSaveProfileArray = useCallback(async (profileArray) => {
+    try {
+      const response = await fetch(DUMMY_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ profiles: profileArray }),
+      });
+      const data = await response.json();
+      console.log("Auto-saved profile array:", data);
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
+
+  const triggerAutoSave = useCallback(() => {
+    if (autoSaveTimeout.current) {
+      clearTimeout(autoSaveTimeout.current);
+    }
+
+    autoSaveTimeout.current = setTimeout(() => {
+      autoSaveProfileArray(profileArray);
+    }, 3000);
+  }, [profileArray, autoSaveProfileArray]);
+
+  useEffect(() => {
+    triggerAutoSave();
+  }, [profileArray, triggerAutoSave]);
 
   const handleDown = (id) => {
     console.log("clicking down for id: ", id);
@@ -201,7 +234,7 @@ const Sidebar = () => {
         <div id="profileWrapper" className="drawer-select flex">
           <div id="profileList" className="scrollable">
             {profileArray.map((profile) => (
-              <>
+              <div key={profile.id}>
                 <div
                   id={profile.id}
                   className={`profile-item ${profile.className} ${
@@ -215,6 +248,7 @@ const Sidebar = () => {
                 >
                   {isEditing && editProfileId === profile.id ? (
                     <input
+                      key={profile.id}
                       id="profileRename"
                       className={`profile-item ${isEditing ? "show" : ""} `}
                       placeholder="Enter Profile Name"
@@ -235,7 +269,7 @@ const Sidebar = () => {
                     profile.name
                   )}
                 </div>
-              </>
+              </div>
             ))}
           </div>
 
