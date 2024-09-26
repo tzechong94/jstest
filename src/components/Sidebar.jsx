@@ -1,32 +1,16 @@
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 const Sidebar = () => {
+  const profileArray = useSelector((state) => state.profileArray);
+
   const [activeProfile, setActiveProfile] = useState(null);
 
-  const [editIconVisible, setEditIconVisible] = useState(false);
-  const [deleteIconVisible, setDeleteIconVisible] = useState(false);
+  useEffect(() => {
+    setActiveProfile(document.getElementById("profile1"));
+  }, []);
 
-  const profileArray = [
-    {
-      name: "Default",
-      className: "default active",
-      isDefault: true,
-      id: "profile1",
-    },
-    { name: "Game", className: "no-edit game", id: "profile2" },
-    { name: "Movie", className: "no-edit movie", id: "profile3" },
-    { name: "Music", className: "no-edit music", id: "profile4" },
-    {
-      name: "Custom 1",
-      className: "custom",
-      id: "custom1",
-    },
-    {
-      name: "demo long text demo long text demo",
-      className: "custom",
-      id: "custom2",
-    },
-  ];
+  // getting array from redux slice
 
   function checkUpDown() {
     if (!activeProfile.nextElementSibling) {
@@ -61,10 +45,10 @@ const Sidebar = () => {
   };
 
   const handleActive = (e) => {
-    console.log("handleActive called");
+    // console.log("handleActive called");
 
     const profileItems = document.querySelectorAll(".profile-item");
-    console.log("profileItems:", profileItems);
+    // console.log("profileItems:", profileItems);
 
     profileItems.forEach((item) => {
       item.classList.remove("active");
