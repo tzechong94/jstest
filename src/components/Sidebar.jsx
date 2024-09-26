@@ -184,7 +184,6 @@ const Sidebar = () => {
   const handleDoneEdit = (id, updatedName) => {
     setIsEditing(false);
     setEditProfileId(null); // Reset after editing
-
     if (updatedName === "") {
       return;
     }
@@ -193,7 +192,13 @@ const Sidebar = () => {
       name: updatedName.trim(),
     };
     dispatch(editProfile(updatedProfile));
+    // setSelectedProfileName(updatedName.trim());
+
     setEditInput("");
+    if (selectedProfile.id === id) {
+      setSelectedProfileName(updatedName.trim());
+      setSelectedProfile(updatedProfile); // Update selectedProfile with the new name
+    }
   };
 
   const handleEditClick = (id) => {
@@ -258,6 +263,10 @@ const Sidebar = () => {
                       onKeyDown={(event) => {
                         if (event.key === "Enter") {
                           handleDoneEdit(selectedProfile.id, editInput);
+                          handleActive(selectedProfile.id);
+                          if (editInput !== "") {
+                            setSelectedProfileName(editInput);
+                          }
                         }
                       }}
                       onBlur={() =>
@@ -326,7 +335,7 @@ const Sidebar = () => {
           </div>
         </div>
       </div>
-      <MainScreen name={selectedProfile.name} />
+      <MainScreen name={selectedProfileName} />
     </>
   );
 };
