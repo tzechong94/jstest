@@ -28,8 +28,13 @@ export const profileSlice = createSlice({
   name: "profile",
   initialState,
   reducers: {
-    addProfile: (state, action) => {
-      state.profileArray.push(action.payload);
+    addProfile: (state) => {
+      console.log("profile added");
+      state.profileArray.push({
+        name: "New Profile",
+        className: "custom",
+        id: state.profileArray.length + 1,
+      });
     },
     changeProfile: (state, action) => {
       state.profileArray.forEach((profile) => {
@@ -58,4 +63,5 @@ export const profileSlice = createSlice({
 
 export const { addProfile, changeProfile, editProfile, deleteProfile } =
   profileSlice.actions;
+
 export default profileSlice.reducer;

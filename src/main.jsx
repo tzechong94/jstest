@@ -6,7 +6,7 @@ import store from "./reducers/store";
 import { PersistGate } from "redux-persist/integration/react";
 import { persistStore } from "redux-persist";
 
-import "./index.css";
+// import "./index.css";
 
 import "./assets/css/main.css";
 import "./assets/css/tooltip.css";

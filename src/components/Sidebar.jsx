@@ -1,14 +1,23 @@
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { addProfile } from "../reducers/profileReducer";
 
 const Sidebar = () => {
   const profileArray = useSelector((state) => state.profileArray);
+  const dispatch = useDispatch();
 
-  const [activeProfile, setActiveProfile] = useState(null);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [activeProfile, setActiveProfile] = useState(
+    document.getElementById("profile1")
+  );
 
   useEffect(() => {
     setActiveProfile(document.getElementById("profile1"));
   }, []);
+
+  useEffect(() => {
+    console.log(showDeleteConfirmation);
+  }, [showDeleteConfirmation]);
 
   // getting array from redux slice
 
@@ -84,58 +93,70 @@ const Sidebar = () => {
     // checkUpDown();
   };
 
-  return (
-    <>
-      <div>
-        {" "}
-        <div className="main-title">Profile List</div>
-        <div id="profileWrapper" className="drawer-select flex">
-          <div id="profileList" className="scrollable">
-            {profileArray.map((profile) => (
-              <div
-                id={profile.id}
-                className={`profile-item ${profile.className}`}
-                key={profile.id}
-                onClick={handleActive}
-              >
-                {profile.name}
-              </div>
-            ))}
-          </div>
-          <input
-            id="profileRename"
-            className="profile-item"
-            placeholder="Enter Profile Name"
-            max="25"
-          />
-          <div className="toolbar flex">
-            <div className="icon add" id="profileAdd"></div>
-            <div className="icon edit" id="profileEdit"></div>
-            <div className="icon delete" id="deleteIcon" />
+  const handleAdd = () => {
+    dispatch(addProfile());
+  };
 
+  const handlePopup = (id) => {
+    setShowDeleteConfirmation(true);
+    console.log(id, " id");
+  };
+
+  return (
+    <div className="thx-drawer flex">
+      <div className="main-title">Profile List</div>
+      <div id="profileWrapper" className="drawer-select flex">
+        <div id="profileList" className="scrollable">
+          {profileArray.map((profile) => (
             <div
-              className="icon down"
-              id="profileDown"
-              onClick={handleDown}
-            ></div>
-            <div
-              className="icon up disabled"
-              id="profileUp"
-              onClick={handleUp}
-            ></div>
-          </div>
+              id={profile.id}
+              className={`profile-item ${profile.className}`}
+              key={profile.id}
+              onClick={handleActive}
+            >
+              {profile.name}
+            </div>
+          ))}
+        </div>
+        <input
+          id="profileRename"
+          className="profile-item"
+          placeholder="Enter Profile Name"
+          max="25"
+        />
+        <div className="toolbar flex">
+          <div className="icon add" id="profileAdd" onClick={handleAdd}></div>
+          <div className="icon edit" id="profileEdit"></div>
+          <div
+            className="icon delete"
+            id="deleteIcon"
+            onClick={() => handlePopup(activeProfile.id)}
+          />
+
+          <div
+            className="icon down"
+            id="profileDown"
+            onClick={handleDown}
+          ></div>
+          <div
+            className="icon up disabled"
+            id="profileUp"
+            onClick={handleUp}
+          ></div>
+        </div>
+        {showDeleteConfirmation && (
           <div id="profileDelCfm" className="profile-del alert flex">
             <div className="title">delete eq</div>
             <div className="body-text t-center" id="delName">
-              delete eq
+              test
             </div>
             <div className="thx-btn" id="cfmDelete">
               delete
             </div>
           </div>
-        </div>
+        )}
       </div>
-    </>
+    </div>
   );
 };
 
