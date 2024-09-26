@@ -1,133 +1,112 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { addProfile, deleteProfile } from "../reducers/profileReducer";
+import {
+  addProfile,
+  deleteProfile,
+  editProfile,
+  setActiveProfile,
+  setProfileArray,
+} from "../reducers/profileReducer";
 import MainScreen from "./MainScreen";
 
 const Sidebar = () => {
   const profileArray = useSelector((state) => state.profileArray);
   const dispatch = useDispatch();
-  const [selectedProfileName, setSelectedProfileName] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleteProfileId, setDeleteProfileId] = useState(null);
-  const [previousSibling, setPreviousSibling] = useState(null);
-  const [activeProfile, setActiveProfile] = useState(
-    document.getElementById("profile1")
-  );
-
-  useEffect(() => {
-    const newProfile = document.getElementById(
-      profileArray[profileArray.length - 1].id
-    );
-    setActiveProfile(newProfile);
-    setSelectedProfileName(newProfile.innerText);
-    newProfile.scrollIntoView({ behavior: "smooth" });
-    console.log(profileArray, profileArray);
-  }, [profileArray]);
-
-  useEffect(() => {
-    setActiveProfile(document.getElementById("profile1"));
-  }, []);
-
-  useEffect(() => {
-    setSelectedProfileName(document.getElementById("profile1").innerText);
-  }, []);
-
+  const [selectedProfile, setSelectedProfile] = useState(profileArray[0]);
+  const [selectedProfileIndex, setSelectedProfileIndex] = useState(0);
+  const [isLast, setIsLast] = useState(false);
+  const [isFirst, setIsFirst] = useState(true);
   // getting array from redux slice
 
-  function checkUpDown() {
-    if (!activeProfile.nextElementSibling) {
-      document.getElementById("profileDown").classList.add("disabled");
-    } else if (!activeProfile.previousElementSibling) {
-      document.getElementById("profileUp").classList.add("disabled");
+  useEffect(() => {
+    dispatch(setActiveProfile(selectedProfile.id));
+    if (selectedProfileIndex === profileArray.length - 1) {
+      setIsLast(true);
     } else {
-      document.getElementById("profileUp").classList.remove("disabled");
-      document.getElementById("profileDown").classList.remove("disabled");
+      setIsLast(false);
     }
-  }
-  const handleDown = function () {
-    const profileList = document.getElementById("profileList");
-
-    const next = activeProfile.nextElementSibling;
-    if (next == null) {
-      return false;
-    }
-    profileList.insertBefore(activeProfile.nextElementSibling, activeProfile);
-    checkUpDown();
-  };
-
-  const handleUp = function () {
-    const profileList = document.getElementById("profileList");
-
-    const prev = activeProfile.previousElementSibling;
-    if (prev == null) {
-      return false;
-    }
-    profileList.insertBefore(activeProfile, prev);
-    checkUpDown();
-  };
-
-  const handleActive = (e) => {
-    // console.log("handleActive called");
-
-    const profileItems = document.querySelectorAll(".profile-item");
-    // console.log("profileItems:", profileItems);
-
-    profileItems.forEach((item) => {
-      item.classList.remove("active");
-    });
-    const profileItem = e.target;
-    setActiveProfile(profileItem);
-    setSelectedProfileName(profileItem.innerText);
-    const nextSibling = profileItem.nextElementSibling;
-    const prevSibling = profileItem.previousElementSibling;
-    setPreviousSibling(prevSibling);
-
-    if (!nextSibling) {
-      console.log(prevSibling, "prevSibling");
-      document.getElementById("profileUp").classList.remove("disabled");
-
-      document.getElementById("profileDown").classList.add("disabled");
-    } else if (!prevSibling) {
-      console.log(nextSibling, "nextSibling");
-      document.getElementById("profileDown").classList.remove("disabled");
-      document.getElementById("profileUp").classList.add("disabled");
+    if (selectedProfileIndex === 0) {
+      setIsFirst(true);
     } else {
-      document.getElementById("profileUp").classList.remove("disabled");
-      document.getElementById("profileDown").classList.remove("disabled");
+      setIsFirst(false);
+    }
+    console.log(isFirst, "isFirst");
+    console.log(isLast, "isLast");
+  }, [
+    dispatch,
+    isFirst,
+    isLast,
+    profileArray.length,
+    selectedProfile,
+    selectedProfileIndex,
+  ]);
+
+  function checkUpDown() {}
+
+  const handleDown = (id) => {
+    console.log("clicking down for id: ", id);
+    let tempArray = [...profileArray];
+
+    const selectedItemIndex = tempArray.findIndex(
+      (profile) => profile.id.toString() === id.toString()
+    );
+    const tempItem = tempArray[selectedItemIndex];
+    if (
+      selectedItemIndex !== -1 &&
+      selectedItemIndex !== tempArray.length - 1
+    ) {
+      tempArray[selectedItemIndex] = tempArray[selectedItemIndex + 1];
+      tempArray[selectedItemIndex + 1] = tempItem;
+      console.log(tempArray, "updated array");
+      setSelectedProfileIndex(selectedItemIndex + 1);
+      dispatch(setProfileArray(tempArray));
+    }
+  };
+
+  const handleUp = (id) => {
+    // dispatch(setActiveProfile(id));
+
+    console.log("clicking up for id: ", id);
+    console.log(id, "id");
+    let tempArray = [...profileArray];
+
+    const selectedItemIndex = tempArray.findIndex(
+      (profile) => profile.id.toString() === id.toString()
+    );
+    const tempItem = tempArray[selectedItemIndex];
+    if (selectedItemIndex !== -1 && selectedItemIndex !== 0) {
+      tempArray[selectedItemIndex] = tempArray[selectedItemIndex - 1];
+      tempArray[selectedItemIndex - 1] = tempItem;
+      console.log(tempArray, "updated array");
+      setSelectedProfileIndex(selectedItemIndex - 1);
+      dispatch(setProfileArray(tempArray));
     }
 
-    profileItem.classList.add("active");
-    if (profileItem.classList.contains("custom")) {
-      document.getElementById("profileEdit").classList.add("show");
-      document.getElementById("deleteIcon").classList.add("show");
-    } else {
-      document.getElementById("profileEdit").classList.remove("show");
-      document.getElementById("deleteIcon").classList.remove("show");
-    }
-    // checkUpDown();
+    // dispatch(setProfileArray(temp));
   };
 
-  const handleAdd = async () => {
-    const id = Math.floor(Math.random() * 1000);
-    console.log("new id, ", id);
-    await dispatch(addProfile(id));
-    handleActive({ target: document.getElementById(id) });
+  const handleActive = (id) => {
+    setSelectedProfile(profileArray.find((profile) => profile.id === id));
+    setSelectedProfileIndex(
+      profileArray.findIndex((profile) => profile.id === id)
+    );
+    dispatch(setActiveProfile(id));
   };
 
-  const handleDelete = (id) => {
-    console.log(id, " delete id");
-    setDeleteProfileId(id);
-    setShowDeleteConfirm(true);
-    console.log(showDeleteConfirm, "show delete confirm");
-  };
+  const handleAdd = async () => {};
 
-  const handleConfirmDelete = () => {
-    dispatch(deleteProfile(deleteProfileId));
-    setShowDeleteConfirm(false);
-    setActiveProfile(previousSibling);
-    handleActive({ target: document.getElementById(previousSibling.id) });
-    checkUpDown();
-  };
+  const handleDelete = (id) => {};
+
+  const handleConfirmDelete = () => {};
+
+  const handleEditClick = (profileId) => {};
+
+  const isSelectedLast = () => {};
+
+  const handleProfileNameChange = (e) => {};
+
+  const handleSaveChanges = (profileId) => {};
 
   return (
     <>
@@ -138,23 +117,24 @@ const Sidebar = () => {
             {profileArray.map((profile) => (
               <div
                 id={profile.id}
-                className={`profile-item ${profile.className}`}
+                className={`profile-item ${profile.className} ${
+                  profile.isActive ? "active" : ""
+                }`}
                 key={profile.id}
-                onClick={handleActive}
+                onClick={() => handleActive(profile.id)}
               >
                 {profile.name}
               </div>
             ))}
           </div>
-          <input
-            id="profileRename"
-            className="profile-item"
-            placeholder="Enter Profile Name"
-            max="25"
-          />
+
           <div className="toolbar flex">
             <div className="icon add" id="profileAdd" onClick={handleAdd}></div>
-            <div className="icon edit" id="profileEdit"></div>
+            <div
+              className="icon edit"
+              id="profileEdit"
+              onClick={() => handleEditClick(activeProfile.id)}
+            ></div>
             <div
               className="icon delete"
               id="deleteIcon"
@@ -162,14 +142,14 @@ const Sidebar = () => {
             />
 
             <div
-              className="icon down"
+              className={`icon down ${isLast ? "disabled" : ""}`}
               id="profileDown"
-              onClick={handleDown}
+              onClick={() => handleDown(selectedProfile.id)}
             ></div>
             <div
-              className="icon up disabled"
+              className={`icon up ${isFirst ? "disabled" : ""} `}
               id="profileUp"
-              onClick={handleUp}
+              onClick={() => handleUp(selectedProfile.id)}
             ></div>
           </div>
           <div
@@ -180,7 +160,7 @@ const Sidebar = () => {
           >
             <div className="title">delete eq</div>
             <div className="body-text t-center" id="delName">
-              {selectedProfileName}
+              name
             </div>
             <div
               className="thx-btn"
@@ -192,7 +172,7 @@ const Sidebar = () => {
           </div>
         </div>
       </div>
-      <MainScreen name={selectedProfileName} />
+      <MainScreen name={selectedProfile.name} />
     </>
   );
 };
