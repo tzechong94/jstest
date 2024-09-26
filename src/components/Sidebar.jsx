@@ -9,7 +9,7 @@ const Sidebar = () => {
   const [selectedProfileName, setSelectedProfileName] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteProfileId, setDeleteProfileId] = useState(null);
-
+  const [previousSibling, setPreviousSibling] = useState(null);
   const [activeProfile, setActiveProfile] = useState(
     document.getElementById("profile1")
   );
@@ -80,6 +80,7 @@ const Sidebar = () => {
     setSelectedProfileName(profileItem.innerText);
     const nextSibling = profileItem.nextElementSibling;
     const prevSibling = profileItem.previousElementSibling;
+    setPreviousSibling(prevSibling);
 
     if (!nextSibling) {
       console.log(prevSibling, "prevSibling");
@@ -123,15 +124,9 @@ const Sidebar = () => {
   const handleConfirmDelete = () => {
     dispatch(deleteProfile(deleteProfileId));
     setShowDeleteConfirm(false);
-  };
-
-  const handleClickOutside = (event) => {
-    if (
-      event.target.id !== "profileDelCfm" &&
-      !event.target.closest("#profileDelCfm")
-    ) {
-      setShowDeleteConfirm(false);
-    }
+    setActiveProfile(previousSibling);
+    handleActive({ target: document.getElementById(previousSibling.id) });
+    checkUpDown();
   };
 
   return (
@@ -185,10 +180,7 @@ const Sidebar = () => {
           >
             <div className="title">delete eq</div>
             <div className="body-text t-center" id="delName">
-              {
-                profileArray.find((profile) => profile.id === deleteProfileId)
-                  ?.name
-              }
+              {selectedProfileName}
             </div>
             <div
               className="thx-btn"
